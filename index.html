@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1,maximum-scale=1,user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="x5-fullscreen" content="true">
+    <meta name="x5-page-mode" content="app">
+    <title></title>
+    <script src="dist/jquery.min.js"></script>
+    <link rel="stylesheet" href="dist/cropper.min.css">
+    <script src="dist/cropper.min.js"></script>
+    
+</head>
+
+<body>
+    <div class="img-container" style="height:300px;background: #f00">        
+        <img id="uploadPreview" src=""/>
+        <img style="width:100px;" id="img" src=""/>
+        <input id="uploadImage" type="file" name="myPhoto" onchange="loadImageFile();" />
+    </div>
+    <button class="aaa" style="display: inline-block;float:right;margin-top:30px;">截图</button>
+</body>
+<script type="text/javascript">			//选择图片并显示
+oFReader = new FileReader(), rFilter = /^(?:image\/bmp|image\/cis\-cod|image\/gif|image\/ief|image\/jpeg|image\/jpeg|image\/jpeg|image\/pipeg|image\/png|image\/svg\+xml|image\/tiff|image\/x\-cmu\-raster|image\/x\-cmx|image\/x\-icon|image\/x\-portable\-anymap|image\/x\-portable\-bitmap|image\/x\-portable\-graymap|image\/x\-portable\-pixmap|image\/x\-rgb|image\/x\-xbitmap|image\/x\-xpixmap|image\/x\-xwindowdump)$/i;
+oFReader.onload = function (oFREvent) {
+  document.getElementById("uploadPreview").src = oFREvent.target.result;
+};
+function loadImageFile() {
+  if (document.getElementById("uploadImage").files.length === 0) { return; }
+  var oFile = document.getElementById("uploadImage").files[0];
+  if (!rFilter.test(oFile.type)) { alert("You must select a valid image file!"); return; }
+  oFReader.readAsDataURL(oFile);
+}
+</script>
+
+<script>    //截取图片
+
+var $image = $('#uploadPreview');    
+
+$image.on("load", function() {        // 等待图片加载成功后，才进行图片的裁剪功能
+    $image.cropper({
+        dragMode: 'move',
+        aspectRatio: 1 / 1,
+        autoCropArea: 1,
+        restore: false,
+        guides: false,
+        center: false,
+        highlight: false,
+        cropBoxMovable: false,
+        cropBoxResizable: false,
+        toggleDragModeOnDblclick: false,
+    });
+    $(".aaa").click( function() {
+    var src = $image.attr("src");
+    var canvasdata = $image.cropper("getCanvasData");
+    var cropBoxData = $image.cropper('getCropBoxData');
+    console.log(canvasdata);
+    convertToData(src, canvasdata, cropBoxData, function(basechar) {
+        // 回调后的函数处理       
+         $("#img").attr('src',basechar);
+
+         var fd = new FormData();
+		var blob = dataURItoBlob(basechar);
+		fd.append('file', blob,'image.png');
+		/*$.ajax({
+		    type: 'POST',
+		    url: 'http://192.168.1.132/SwiftTTZ/api/User/UpdateForImage',
+		    data: fd,
+		    processData: false, // 不会将 data 参数序列化字符串
+		    contentType: false, // 根据表单 input 提交的数据使用其默认的 contentType
+		    beforeSend:function(xhr){xhr.setRequestHeader('Authorization', 'DBDF65396AF9F314F472CAEE1D26EAF2A9BBAAECCDEDF066EE06A13F42E0EF48ED4B8657A8794185D31C41EBD9BE668995068E86BC377EE2BA5B23A6522DAC5F')},
+		    /*xhr: function() {
+		        var xhr = new window.XMLHttpRequest();
+		        xhr.upload.addEventListener("progress", function(evt) {
+		            if (evt.lengthComputable) {
+		                var percentComplete = evt.loaded / evt.total;
+		                console.log('进度', percentComplete);
+		            }
+		        }, false);
+		        return xhr;
+		    }
+		}).success(function (res) {
+		    // 拿到提交的结果
+		}).error(function (err) {
+		    console.error(err);
+		});*/
+		/*success: function(data){
+          alert(1)
+      },
+      error: function(xhr, type){
+         alert("服务器错误，上传头像失败");
+      }
+    })*/
+    });
+})
+}) 
+function convertToData(url, canvasdata, cropdata, callback) {
+    var cropw = cropdata.width; // 剪切的宽
+    var croph = cropdata.height; // 剪切的宽
+    var imgw = canvasdata.width; // 图片缩放或则放大后的高
+    var imgh = canvasdata.height; // 图片缩放或则放大后的高
+    var poleft = canvasdata.left - cropdata.left; // canvas定位图片的左边位置
+    var potop = canvasdata.top - cropdata.top; // canvas定位图片的上边位置    
+    var canvas = document.createElement("canvas");
+    var ctx = canvas.getContext('2d');   
+    canvas.width = cropw;
+    canvas.height = croph;   
+    var img = new Image();
+    //img.crossOrigin='*';
+    img.src = url;
+    img.onload = function() {
+        this.width = imgw;
+        this.height = imgh;
+            // 这里主要是懂得canvas与图片的裁剪之间的关系位置
+        ctx.drawImage(this, poleft, potop, this.width, this.height);
+        var base64 = canvas.toDataURL('image/jpeg', 0.6);  // 这里的“1”是指的是处理图片的清晰度（0-1）之间，当然越小图片越模糊，处理后的图片大小也就越小
+        callback && callback(base64)      // 回调base64字符串
+    }
+}   
+function dataURItoBlob(dataURI) {			//转二进制，便于上传
+    var byteString = atob(dataURI.split(',')[1]);
+    var mimeString = dataURI.split(',')[0].split(':')[1].split(';')[0];
+    var ab = new ArrayBuffer(byteString.length);
+    var ia = new Uint8Array(ab);
+    for (var i = 0; i < byteString.length; i++) {
+        ia[i] = byteString.charCodeAt(i);
+    }
+    return new Blob([ab], {type: mimeString});
+} 
+</script>
+
+</html>
