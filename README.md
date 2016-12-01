@@ -1,7 +1,7 @@
 # screenshot
 screenshot by cropper</br>
 First tkanks to the author of cropper.</br>
-由于canvas不能使用本地图片最为img.url，这里使用了base64作为url。</br>
+由于canvas不能使用本地地址图片做为img.url，这里使用了base64作为url。现大都用blob作为图片url</br>
 cropper内容请移步https://github.com/fengyuanchen/cropper/<br>
 
 /*该方法问题*/</br>
