@@ -109,7 +109,7 @@ function convertToData(url, canvasdata, cropdata, callback) {
     canvas.width = cropw;
     canvas.height = croph;   
     var img = new Image();
-    //img.crossOrigin='*';
+    //img.crossOrigin='*';		//可用外源图片，经测试只有谷歌和火狐生效
     img.src = url;
     img.onload = function() {
         this.width = imgw;
