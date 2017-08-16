@@ -3,6 +3,7 @@ screenshot by cropper</br>
 First tkanks to the author of cropper.</br>
 由于canvas不能使用本地地址图片做为img.url，这里使用了base64作为url。现大都用blob作为图片url</br>
 cropper内容请移步https://github.com/fengyuanchen/cropper/<br>
+更完美截屏，兼容ios和安卓请参考http://www.htmleaf.com/html5/html5-canvas/201708044666.html
 
 /*该方法问题*/</br>
 只能改变第一张图，再做改变的时候不能再改变。。。而且用的是base64位，转化数据庞大，不宜作为项目使用。</br>
